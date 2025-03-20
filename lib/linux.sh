@@ -21,7 +21,7 @@ bsp_prepare() {
 
 bsp_make() {
     local kernelversion="$(bsp_version)"
-
+    
     make -C "$TARGET_DIR" -j$(nproc) \
         ARCH=$BSP_ARCH CROSS_COMPILE=$CROSS_COMPILE HOSTCC=${CROSS_COMPILE}gcc \
         KDEB_COMPRESS="xz" KDEB_CHANGELOG_DIST="unstable" DPKG_FLAGS=$BSP_DPKG_FLAGS \
@@ -32,7 +32,7 @@ bsp_make() {
 bsp_makedeb() {
     local kernelversion="$(bsp_version)"
 
-    mv $SCRIPT_DIR/.src/*.deb ./
+    mv $DEB_DIR/*.deb ./
     for BOARD in ${SUPPORTED_BOARDS[@]}
     do
         local NAMES=("linux-image-$BOARD" "linux-headers-$BOARD" "linux-libc-dev-$BOARD")

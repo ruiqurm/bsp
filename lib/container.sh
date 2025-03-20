@@ -36,9 +36,13 @@ container_exec() {
     CONTAINER_OPTIONS+=( "--mount" "type=bind,source=$PWD,destination=$PWD" )
     # Check if the kernel path is a soft link
     if [ -L "$SCRIPT_DIR/.src/linux" ]; then
-        TARGET_REAL_PATH=$(readlink -f "$SCRIPT_DIR/.src/linux")
-        CONTAINER_OPTIONS+=( "--mount" "type=bind,source=$TARGET_REAL_PATH,destination=$TARGET_REAL_PATH")
+        LINUX_DIR="$(readlink -f "$SCRIPT_DIR/.src/linux")"
+        DEB_DIR="$(realpath "$LINUX_DIR/../")"
+        CONTAINER_OPTIONS+=( "--mount" "type=bind,source=$DEB_DIR,destination=$DEB_DIR")
+    else
+        DEB_DIR="$SCRIPT_DIR/.src"
     fi
+    CONTAINER_OPTIONS+=( "-e" "DEB_DIR=$DEB_DIR")
 
     if [[ -t 0 ]]
     then
@@ -67,7 +71,7 @@ container_exec() {
             $CONTAINER_BACKEND container rm bsp
         fi
     else
-        local CONTAINER_SUDO="sed -i -E \"s/^(runner):(x?):([0-9]+):([0-9]+):(.*):(.*):(.*)$/\1:\2:$(id -u):$(id -g):\5:\6:\7/\" /etc/passwd && sudo -u runner"
+        local CONTAINER_SUDO="sed -i -E \"s/^(runner):(x?):([0-9]+):([0-9]+):(.*):(.*):(.*)$/\1:\2:$(id -u):$(id -g):\5:\6:\7/\" /etc/passwd && sudo -E -u runner"
         if $CONTAINER_SHELL
         then
             if ! $CONTAINER_BACKEND run "${CONTAINER_OPTIONS[@]}" "${CONTAINER_REGISTRY}bsp:builder" bash -c "$CONTAINER_SUDO -i"
